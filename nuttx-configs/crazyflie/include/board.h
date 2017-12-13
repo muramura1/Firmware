@@ -36,7 +36,6 @@
 
 #ifndef __CONFIG_CRAZYFLIE_INCLUDE_BOARD_H
 #define __CONFIG_CRAZYFLIE_INCLUDE_BOARD_H
-
 /************************************************************************************
  * Included Files
  ************************************************************************************/
@@ -63,8 +62,8 @@
  *   AHB Prescaler                 : 1            (STM32_RCC_CFGR_HPRE)
  *   APB1 Prescaler                : 4            (STM32_RCC_CFGR_PPRE1)
  *   APB2 Prescaler                : 2            (STM32_RCC_CFGR_PPRE2)
- *   HSE Frequency(Hz)             : 8000000      (STM32_BOARD_XTAL)
- *   PLLM                          : 8            (STM32_PLLCFG_PLLM)
+ *   HSE Frequency(Hz)             : 24000000     (STM32_BOARD_XTAL)
+ *   PLLM                          : 24           (STM32_PLLCFG_PLLM)
  *   PLLN                          : 336          (STM32_PLLCFG_PLLN)
  *   PLLP                          : 2            (STM32_PLLCFG_PLLP)
  *   PLLQ                          : 7            (STM32_PLLCFG_PLLQ)
@@ -79,11 +78,11 @@
 
 /* HSI - 16 MHz RC factory-trimmed
  * LSI - 32 KHz RC
- * HSE - On-board crystal frequency is 8MHz
+ * HSE - On-board crystal frequency is 24MHz
  * LSE - not installed
  */
 
-#define STM32_BOARD_XTAL        8000000ul
+#define STM32_BOARD_XTAL        24000000ul
 
 #define STM32_HSI_FREQUENCY     16000000ul
 #define STM32_LSI_FREQUENCY     32000
@@ -103,7 +102,7 @@
  *         = 48,000,000
  */
 
-#define STM32_PLLCFG_PLLM       RCC_PLLCFG_PLLM(8)
+#define STM32_PLLCFG_PLLM       RCC_PLLCFG_PLLM(24)
 #define STM32_PLLCFG_PLLN       RCC_PLLCFG_PLLN(336)
 #define STM32_PLLCFG_PLLP       RCC_PLLCFG_PLLP_2
 #define STM32_PLLCFG_PLLQ       RCC_PLLCFG_PLLQ(7)
@@ -172,20 +171,16 @@
  * UARTs.
  *
  */
- /* E_TX2 / E_RX2 */
-#define GPIO_USART2_RX	GPIO_USART2_RX_1
-#define GPIO_USART2_TX	GPIO_USART2_TX_1
+#define GPIO_USART1_RX	GPIO_USART1_RX_2
+#define GPIO_USART1_TX	GPIO_USART1_TX_2
 
-/* E_TX1 / E_RX1 */
-#define GPIO_USART3_RX	GPIO_USART3_RX_2
-#define GPIO_USART3_TX	GPIO_USART3_TX_2
+#define GPIO_USART3_RX	GPIO_USART3_RX_3
+#define GPIO_USART3_TX	GPIO_USART3_TX_3
+#define GPIO_USART3_RTS	GPIO_USART3_RTS_2
+#define GPIO_USART3_CTS	GPIO_USART3_CTS_2
 
-/* NRF51 via syslink */
-#define GPIO_USART6_RX	GPIO_USART6_RX_1
-#define GPIO_USART6_TX	GPIO_USART6_TX_1
-
-/* UART DMA configuration for USART6 */
-#define DMAMAP_USART6_RX DMAMAP_USART6_RX_2
+#define GPIO_UART4_RX	GPIO_UART4_RX_1
+#define GPIO_UART4_TX	GPIO_UART4_TX_1
 
 /*
  * I2C
@@ -255,4 +250,4 @@ EXTERN void stm32_boardinitialize(void);
 #endif
 
 #endif /* __ASSEMBLY__ */
-#endif  /* __CONFIG_CRAZYFLIE_INCLUDE_BOARD_H */
+#endif  /* __CONFIG_MINIPIX_INCLUDE_BOARD_H */
