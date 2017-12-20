@@ -169,6 +169,8 @@ start_bus(struct mpu9250_bus_option &bus, enum Rotation rotation, bool external)
 		return false;
 	}
 
+	warnx("urpylka bus %u %s", (unsigned)bus.busid, external ? "External" : "Internal");
+
 	device::Device *interface = bus.interface_constructor(bus.busnum, external);
 
 	if (interface == nullptr) {
@@ -181,6 +183,8 @@ start_bus(struct mpu9250_bus_option &bus, enum Rotation rotation, bool external)
 		warnx("no device on bus %u", (unsigned)bus.busid);
 		return false;
 	}
+
+	warnx("bus %u inited", (unsigned)bus.busid);
 
 	device::Device *mag_interface = nullptr;
 

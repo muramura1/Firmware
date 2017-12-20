@@ -56,6 +56,10 @@
 
 #include "platform/cxxinitialize.h"
 #include <nuttx/board.h>
+#include <nuttx/spi/spi.h>
+#include <nuttx/i2c/i2c_master.h>
+#include <nuttx/sdio.h>
+#include <nuttx/mmcsd.h>
 #include <nuttx/analog/adc.h>
 
 #include "board_config.h"
@@ -134,7 +138,11 @@ stm32_boardinitialize(void)
 	board_autoled_initialize();
 
 	stm32_usbinitialize();
+
+	stm32_spiinitialize(PX4_SPI_BUS_SENSORS);
 }
+
+static struct spi_dev_s *spi1;
 
 /****************************************************************************
  * Name: board_app_initialize
@@ -326,6 +334,24 @@ __EXPORT int board_app_initialize(uintptr_t arg)
 	led_off(LED_BLUE);
 	led_off(LED_TX);
 	led_off(LED_RX);
+
+	spi1 = stm32_spibus_initialize(1);
+
+	if (!spi1) {
+		message("[boot] FAILED to initialize SPI port 1\n");
+		board_autoled_on(LED_RED);
+		return -ENODEV;
+	}
+
+
+	/* Default SPI1 to 1MHz and de-assert the known chip selects. */
+	SPI_SETFREQUENCY(spi1, 10000000);
+	SPI_SETBITS(spi1, 8);
+	SPI_SETMODE(spi1, SPIDEV_MODE3);
+	SPI_SELECT(spi1, PX4_SPIDEV_GYRO, false);
+	// SPI_SELECT(spi1, PX4_SPIDEV_HMC, false);
+	SPI_SELECT(spi1, PX4_SPIDEV_MPU, false);
+	up_udelay(20);
 
 	return OK;
 }

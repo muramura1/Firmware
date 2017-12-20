@@ -51,6 +51,58 @@ ver all
 #
 set MODE autostart
 
+set TUNE_ERR ML<<CP4CP4CP4CP4CP4
+set LOG_FILE /fs/microsd/bootlog.txt
+
+#
+# Try to mount the microSD card.
+#
+# REBOOTWORK this needs to start after the flight control loop
+if mount -t vfat /dev/mmcsd0 /fs/microsd
+then
+	echo "[i] microSD mounted: /fs/microsd"
+	if hardfault_log check
+	then
+		tone_alarm error
+		if hardfault_log commit
+		then
+			hardfault_log reset
+			tone_alarm stop
+		fi
+	else
+		# Start playing the startup tune
+		tone_alarm start
+	fi
+else
+	tone_alarm MBAGP
+	if mkfatfs /dev/mmcsd0
+	then
+		if mount -t vfat /dev/mmcsd0 /fs/microsd
+		then
+			echo "INFO  [init] MicroSD card formatted"
+		else
+			echo "ERROR [init] Format failed"
+			tone_alarm MNBG
+			set LOG_FILE /dev/null
+		fi
+	else
+		set LOG_FILE /dev/null
+	fi
+fi
+
+#
+# Look for an init script on the microSD card.
+# Disable autostart if the script found.
+#
+set FRC /fs/microsd/etc/rc.txt
+if [ -f $FRC ]
+then
+	echo "INFO  [init] Executing script: ${FRC}"
+	sh $FRC
+	set MODE custom
+fi
+unset FRC
+
 if [ $MODE == autostart ]
 then
 
@@ -76,6 +128,21 @@ then
 		then
 		fi
 	fi
+
+	#
+	# Start system state indicator
+	#
+	if rgbled start
+	then
+	else
+		if blinkm start
+		then
+			blinkm systemstate
+		fi
+	fi
+
+	# FMUv5 may have both PWM I2C RGB LED support
+	rgbled_pwm start
 
 	#
 	# Set AUTOCNF flag to use it in AUTOSTART scripts
@@ -129,11 +196,212 @@ then
 	set USE_IO no
 	set LOGGER_BUF 16
 
+	if ver hwcmp PX4FMU_V4
+	then
+		param set SYS_FMU_TASK 1
+	fi
+
+	if ver hwcmp PX4FMU_V4PRO
+	then
+		param set SYS_FMU_TASK 1
+	fi
+
+	if ver hwcmp PX4FMU_V5
+	then
+		param set SYS_FMU_TASK 1
+		set MAVLINK_COMPANION_DEVICE /dev/ttyS3
+
+		set LOGGER_BUF 64
+		param set SDLOG_MODE 2
+	fi
+
+	if ver hwcmp CRAZYFLIE
+	then
+		if param compare SYS_AUTOSTART 0
+		then
+			param set SYS_AUTOSTART 4900
+			set AUTOCNF yes
+		fi
+	fi
+
+	if ver hwcmp AEROFC_V1
+	then
+		if param compare SYS_AUTOSTART 0
+		then
+			set AUTOCNF yes
+		fi
+
+		# We don't allow changing AUTOSTART as it doesn't work in
+		# other configurations
+		param set SYS_AUTOSTART 4070
+	fi
+
+	if ver hwcmp NXPHLITE_V3
+	then
+		param set SYS_FMU_TASK 1
+		set MAVLINK_COMPANION_DEVICE /dev/ttyS4
+	fi
+
+	#
+	# Set USE_IO flag
+	#
+	if param compare SYS_USE_IO 1
+	then
+		set USE_IO yes
+	fi
+
+	if param compare SYS_FMU_TASK 1
+	then
+		set FMU_ARGS "-t"
+	fi
+
+	#
+	# Set parameters and env variables for selected AUTOSTART
+	#
+	if param compare SYS_AUTOSTART 0
+	then
+	else
+#		sh /etc/init.d/rc.autostart
+	fi
+
 	unset MODE
+
+	#
+	# If mount (gimbal) control is enabled and output mode is AUX, set the aux
+	# mixer to mount (override the airframe-specific MIXER_AUX setting)
+	#
+	if param compare MNT_MODE_IN -1
+	then
+	else
+		if param compare MNT_MODE_OUT 0
+		then
+			set MIXER_AUX mount
+		fi
+	fi
+
+	#
+	# Override parameters from user configuration file
+	#
+	set FCONFIG /fs/microsd/etc/config.txt
+	if [ -f $FCONFIG ]
+	then
+		echo "Custom: ${FCONFIG}"
+		sh $FCONFIG
+	fi
+	unset FCONFIG
+
+	#
+	# If autoconfig parameter was set, reset it and save parameters
+	#
+	if [ $AUTOCNF == yes ]
+	then
+		# Disable safety switch by default on Pixracer
+		if ver hwcmp PX4FMU_V4
+		then
+			param set CBRK_IO_SAFETY 22027
+		fi
+		param set SYS_AUTOCONFIG 0
+	fi
+	unset AUTOCNF
 
 	set IO_PRESENT no
 
-	send_event start
+	if [ $USE_IO == yes ]
+	then
+		#
+		# Check if PX4IO present and update firmware if needed
+		#
+		if [ -f /etc/extras/px4io-v2.bin ]
+		then
+			set IO_FILE /etc/extras/px4io-v2.bin
+
+			if px4io checkcrc ${IO_FILE}
+			then
+				echo "[init] PX4IO CRC OK" >> $LOG_FILE
+
+				set IO_PRESENT yes
+			else
+				tone_alarm MLL32CP8MB
+
+				if px4io start
+				then
+					# try to safe px4 io so motor outputs dont go crazy
+					if px4io safety_on
+					then
+						# success! no-op
+					else
+						# px4io did not respond to the safety command
+						px4io stop
+					fi
+				fi
+
+				if px4io forceupdate 14662 ${IO_FILE}
+				then
+					usleep 10000
+					if px4io checkcrc ${IO_FILE}
+					then
+						echo "PX4IO CRC OK after updating" >> $LOG_FILE
+						tone_alarm MLL8CDE
+
+						set IO_PRESENT yes
+					else
+						echo "PX4IO update failed" >> $LOG_FILE
+						tone_alarm ${TUNE_ERR}
+					fi
+				else
+					echo "PX4IO update failed" >> $LOG_FILE
+					tone_alarm ${TUNE_ERR}
+				fi
+			fi
+		fi
+		unset IO_FILE
+
+		if [ $IO_PRESENT == no ]
+		then
+			echo "PX4IO not found" >> $LOG_FILE
+			tone_alarm ${TUNE_ERR}
+		fi
+	fi
+
+	#
+	# Set default output if not set
+	#
+	if [ $OUTPUT_MODE == none ]
+	then
+		if [ $USE_IO == yes ]
+		then
+			set OUTPUT_MODE io
+		else
+			set OUTPUT_MODE fmu
+		fi
+	fi
+
+	if [ $OUTPUT_MODE == io -a $IO_PRESENT != yes ]
+	then
+		# Need IO for output but it not present, disable output
+		set OUTPUT_MODE none
+	fi
+
+	if [ $OUTPUT_MODE == tap_esc ]
+	then
+		set FMU_MODE rcin
+	fi
+
+	set DATAMAN_OPT ""
+	if ver hwcmp AEROFC_V1
+	then
+		set DATAMAN_OPT -i
+	fi
+	if ver hwcmp AEROCORE2
+	then
+		set DATAMAN_OPT "-f /fs/mtd_dataman"
+	fi
+	# waypoint storage
+	# REBOOTWORK this needs to start in parallel
+	if dataman start $DATAMAN_OPT
+	then
+	fi
+	unset DATAMAN_OPT
 
 	# Start MAVLink
 	mavlink start -r 800000 -d /dev/ttyACM0 -m config -x

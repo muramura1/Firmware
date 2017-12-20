@@ -36,6 +36,7 @@ px4_add_module(
 		crazyflie_init.c
 		crazyflie_usb.c
 		crazyflie_led.c
+		crazyflie_spi.c
 		crazyflie_timer_config.c
 	DEPENDS
 		platforms__common

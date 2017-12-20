@@ -81,6 +81,7 @@
 
 #define GPIO_NRF_TXEN			(GPIO_INPUT|GPIO_PULLUP|GPIO_EXTI|GPIO_PORTA|GPIO_PIN4)
 
+#define PX4_SPI_BUS_SENSORS      1
 
 /*
  * I2C busses
@@ -104,6 +105,19 @@
  * Note that these are unshifted addresses.
  */
 #define PX4_I2C_OBDEV_MPU9250	0x69
+
+#define PX4_SPIDEV_GYRO       PX4_MK_SPI_SEL(PX4_SPI_BUS_SENSORS, 1)
+#define PX4_SPIDEV_ACCEL_MAG  PX4_MK_SPI_SEL(PX4_SPI_BUS_SENSORS, 2)
+#define PX4_SPIDEV_BARO       PX4_MK_SPI_SEL(PX4_SPI_BUS_SENSORS, 3)
+#define PX4_SPIDEV_MPU        PX4_MK_SPI_SEL(PX4_SPI_BUS_SENSORS, 4)
+
+/* SPI 1 bus off */
+
+#define _PIN_OFF(def) (((def) & (GPIO_PORT_MASK | GPIO_PIN_MASK)) | (GPIO_INPUT|GPIO_PULLDOWN|GPIO_SPEED_2MHz))
+#define GPIO_SPI1_SCK_OFF            _PIN_OFF(GPIO_SPI1_SCK)
+#define GPIO_SPI1_MISO_OFF           _PIN_OFF(GPIO_SPI1_MISO)
+#define GPIO_SPI1_MOSI_OFF           _PIN_OFF(GPIO_SPI1_MOSI)
+
 
 /* USB OTG FS
  *
@@ -211,7 +225,7 @@ __BEGIN_DECLS
  *
  ****************************************************************************************************/
 
-#define board_spi_reset(ms)
+// #define board_spi_reset(ms)
 #define board_peripheral_reset(ms)
 
 /****************************************************************************************************
@@ -233,6 +247,21 @@ extern void stm32_usbinitialize(void);
  ****************************************************************************/
 
 int board_i2c_initialize(void);
+
+/****************************************************************************************************
+ * Name: stm32_spiinitialize
+ *
+ * Description:
+ *   Called to configure SPI chip select GPIO pins for the PX4FMU board.
+ *
+ *   mask - is bus selection
+ *   1 - 1 << 0
+ *   2 - 1 << 1
+ *
+ ****************************************************************************************************/
+
+extern void stm32_spiinitialize(int mask);
+void board_spi_reset(int ms);
 
 #include "../common/board_common.h"
 

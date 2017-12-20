@@ -201,12 +201,10 @@
 
 /*
  * SPI
- *
- * E_MISO, E_MOSI, E_SCK exposed on headers
  */
-#define GPIO_SPI1_MISO	(GPIO_SPI1_MISO_1|GPIO_SPEED_50MHz)
-#define GPIO_SPI1_MOSI	(GPIO_SPI1_MOSI_1|GPIO_SPEED_50MHz)
-#define GPIO_SPI1_SCK	(GPIO_SPI1_SCK_1|GPIO_SPEED_50MHz)
+#define GPIO_SPI1_MISO	GPIO_SPI1_MISO_1
+#define GPIO_SPI1_MOSI	GPIO_SPI1_MOSI_1
+#define GPIO_SPI1_SCK	GPIO_SPI1_SCK_1
 
 /* XXX since we allocate the HP work stack from CCM RAM on normal system startup,
    SPI1 will never run in DMA mode - so we can just give it a random config here.
