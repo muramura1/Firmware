@@ -114,3 +114,10 @@ bool pre_flt_fail_innov_height
 # legacy local position estimator (LPE) flags
 uint8 health_flags		# Bitmask to indicate sensor health states (vel, pos, hgt)
 uint8 timeout_flags		# Bitmask to indicate timeout flags (vel, pos, hgt)
+
+# Kalman gains
+float32[3] gps_pos_gain
+float32[3] gps_vel_gain
+float32[2] flow_gain
+float32[3] vision_gain
+float32[3] mocap_gain
