@@ -246,6 +246,8 @@ rtps:
   - msg: collision_constraints
     id: 107
     send: true
+  - msg: pozyx_report
+    id: 108
   # multi topics
   - msg: actuator_control0
     id: 120
