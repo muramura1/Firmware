@@ -661,6 +661,7 @@ void Logger::add_default_topics()
 	add_topic("charging_station_state");
 	add_topic("external_vehicle_position");
 	add_topic("pozyx_report");
+	add_topic("landing_target_pose");
 
 	add_topic_multi("actuator_outputs", 100);
 	add_topic_multi("battery_status", 500);
