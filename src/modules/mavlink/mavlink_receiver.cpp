@@ -147,6 +147,7 @@ MavlinkReceiver::MavlinkReceiver(Mavlink *parent) :
 	_debug_vect_pub(nullptr),
 	_gps_inject_data_pub(nullptr),
 	_command_ack_pub(nullptr),
+	_log_message_pub(nullptr),
 	_control_mode_sub(orb_subscribe(ORB_ID(vehicle_control_mode))),
 	_actuator_armed_sub(orb_subscribe(ORB_ID(actuator_armed))),
 	_global_ref_timestamp(0),
@@ -350,6 +351,10 @@ MavlinkReceiver::handle_message(mavlink_message_t *msg)
 
 	case MAVLINK_MSG_ID_DEBUG_VECT:
 		handle_message_debug_vect(msg);
+		break;
+
+	case MAVLINK_MSG_ID_STATUSTEXT:
+		handle_message_statustext(msg);
 		break;
 
 	default:
@@ -2462,6 +2467,54 @@ void MavlinkReceiver::handle_message_debug_vect(mavlink_message_t *msg)
 
 	} else {
 		orb_publish(ORB_ID(debug_vect), _debug_vect_pub, &debug_topic);
+	}
+}
+
+void MavlinkReceiver::handle_message_statustext(mavlink_message_t *msg)
+{
+	if (msg->sysid == mavlink_system.sysid) {
+		// log message from the same system
+
+		mavlink_statustext_t statustext;
+		mavlink_msg_statustext_decode(msg, &statustext);
+
+		struct log_message_s log_message;
+
+		switch (statustext.severity) {
+			case MAV_SEVERITY_EMERGENCY:
+			case MAV_SEVERITY_ALERT:
+			case MAV_SEVERITY_CRITICAL:
+				log_message.severity = 0;
+				break;
+
+			case MAV_SEVERITY_ERROR:
+				log_message.severity = 3;
+				break;
+
+			case MAV_SEVERITY_WARNING:
+				log_message.severity = 4;
+				break;
+
+			case MAV_SEVERITY_NOTICE:
+			case MAV_SEVERITY_INFO:
+				log_message.severity = 6;
+				break;
+
+			default:
+				return;
+		}
+
+		log_message.timestamp = hrt_absolute_time();
+
+		strncpy((char *)log_message.text, statustext.text, sizeof(log_message.text));
+		log_message.text[sizeof(log_message.text) - 1] = 0; // ensure 0-termination
+
+		if (_log_message_pub == nullptr) {
+			_log_message_pub = orb_advertise(ORB_ID(log_message), &log_message);
+
+		} else {
+			orb_publish(ORB_ID(log_message), _log_message_pub, &log_message);
+		}
 	}
 }
 
