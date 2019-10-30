@@ -343,10 +343,9 @@ void AttitudeEstimatorQ::task_main()
 		_ext_hdg_good = false;
 		bool vision_updated = false;
 		orb_check(_vision_sub, &vision_updated);
+		vehicle_attitude_s vision;
 
 		if (vision_updated) {
-			vehicle_attitude_s vision;
-
 			if (orb_copy(ORB_ID(vehicle_vision_attitude), _vision_sub, &vision) == PX4_OK) {
 				Quatf q(vision.q);
 
@@ -357,21 +356,14 @@ void AttitudeEstimatorQ::task_main()
 				// Hence Rvis must be transposed having (Rwr)' * Vw
 				// Rrw * Vw = vn. This way we have consistency
 				_vision_hdg = Rvis.transpose() * v;
-
-				// vision external heading usage (ATT_EXT_HDG_M 1)
-				if (_ext_hdg_mode == 1) {
-					// Check for timeouts on data
-					_ext_hdg_good = vision.timestamp > 0 && (hrt_elapsed_time(&vision.timestamp) < 500000);
-				}
 			}
 		}
 
 		bool mocap_updated = false;
 		orb_check(_mocap_sub, &mocap_updated);
+		att_pos_mocap_s mocap;
 
 		if (mocap_updated) {
-			att_pos_mocap_s mocap;
-
 			if (orb_copy(ORB_ID(att_pos_mocap), _mocap_sub, &mocap) == PX4_OK) {
 				Dcmf Rmoc = Quatf(mocap.q);
 				Vector3f v(1.0f, 0.0f, 0.4f);
@@ -380,13 +372,14 @@ void AttitudeEstimatorQ::task_main()
 				// Hence Rmoc must be transposed having (Rwr)' * Vw
 				// Rrw * Vw = vn. This way we have consistency
 				_mocap_hdg = Rmoc.transpose() * v;
-
-				// Motion Capture external heading usage (ATT_EXT_HDG_M 2)
-				if (_ext_hdg_mode == 2) {
-					// Check for timeouts on data
-					_ext_hdg_good = mocap.timestamp > 0 && (hrt_elapsed_time(&mocap.timestamp) < 500000);
-				}
 			}
+		}
+
+		// Check for timeouts on data
+		if (_ext_hdg_mode == 1) {
+			_ext_hdg_good = vision.timestamp > 0 && (hrt_elapsed_time(&vision.timestamp) < 500000);
+		} else if (_ext_hdg_mode == 2) {
+			_ext_hdg_good = mocap.timestamp > 0 && (hrt_elapsed_time(&mocap.timestamp) < 500000);
 		}
 
 		bool gpos_updated = false;
