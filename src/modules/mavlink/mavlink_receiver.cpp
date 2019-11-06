@@ -86,6 +86,7 @@
 #include <parameters/param.h>
 #include <systemlib/mavlink_log.h>
 #include <systemlib/err.h>
+#include <systemlib/px4_macros.h>
 
 #include <commander/px4_custom_mode.h>
 
@@ -2506,8 +2507,8 @@ void MavlinkReceiver::handle_message_statustext(mavlink_message_t *msg)
 
 		log_message.timestamp = hrt_absolute_time();
 
-		strncpy((char *)log_message.text, statustext.text, sizeof(log_message.text));
-		log_message.text[sizeof(log_message.text) - 1] = 0; // ensure 0-termination
+		snprintf((char *)log_message.text, sizeof(log_message.text),
+ 			 "[mavlink: component %d] %." STRINGIFY(MAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN) "s", msg->compid, statustext.text);
 
 		if (_log_message_pub == nullptr) {
 			_log_message_pub = orb_advertise(ORB_ID(log_message), &log_message);
