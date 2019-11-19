@@ -48,6 +48,7 @@
 #include <uORB/topics/vehicle_attitude.h>
 #include <uORB/topics/vehicle_control_mode.h>
 #include <uORB/topics/vehicle_local_position_setpoint.h>
+#include <uORB/topics/distance_sensor.h>
 
 #include "LandDetector.h"
 
@@ -101,6 +102,7 @@ private:
 		param_t hoverThrottle;
 		param_t minManThrottle;
 		param_t landSpeed;
+		param_t clearance;
 	} _paramHandle{};
 
 	struct {
@@ -108,6 +110,7 @@ private:
 		float hoverThrottle;
 		float minManThrottle;
 		float landSpeed;
+		float clearance;
 	} _params{};
 
 	uORB::Subscription _actuator_controls_sub{ORB_ID(actuator_controls_0)};
@@ -117,12 +120,14 @@ private:
 	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)};
 	uORB::Subscription _vehicle_local_position_sub{ORB_ID(vehicle_local_position)};
 	uORB::Subscription _vehicle_local_position_setpoint_sub{ORB_ID(vehicle_local_position_setpoint)};
+	uORB::Subscription _distance_sensor_sub{ORB_ID(distance_sensor)};
 
 	actuator_controls_s               _actuator_controls {};
 	battery_status_s                  _battery_status {};
 	vehicle_angular_velocity_s        _vehicle_angular_velocity{};
 	vehicle_control_mode_s            _vehicle_control_mode {};
 	vehicle_local_position_setpoint_s _vehicle_local_position_setpoint {};
+	distance_sensor_s                 _distance_sensor {};
 
 	hrt_abstime _min_trust_start{0};	///< timestamp when minimum trust was applied first
 	hrt_abstime _landed_time{0};
@@ -138,7 +143,8 @@ private:
 		(ParamFloat<px4::params::LNDMC_LOW_T_THR>)  _param_lndmc_low_t_thr,
 		(ParamFloat<px4::params::LNDMC_ROT_MAX>)    _param_lndmc_rot_max,
 		(ParamFloat<px4::params::LNDMC_XY_VEL_MAX>) _param_lndmc_xy_vel_max,
-		(ParamFloat<px4::params::LNDMC_Z_VEL_MAX>)  _param_lndmc_z_vel_max
+		(ParamFloat<px4::params::LNDMC_Z_VEL_MAX>)  _param_lndmc_z_vel_max,
+		(ParamFloat<px4::params::LNDMC_CLEARANCE>)  _param_lndmc_clearance
 	);
 };
 

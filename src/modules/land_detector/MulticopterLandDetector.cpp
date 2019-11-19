@@ -77,6 +77,7 @@ MulticopterLandDetector::MulticopterLandDetector()
 	_paramHandle.minManThrottle = param_find("MPC_MANTHR_MIN");
 	_paramHandle.minThrottle    = param_find("MPC_THR_MIN");
 	_paramHandle.hoverThrottle  = param_find("MPC_THR_HOVER");
+	_paramHandle.clearance      = param_find("LNDMC_CLEARANCE");
 
 	// Use Trigger time when transitioning from in-air (false) to landed (true) / ground contact (true).
 	_ground_contact_hysteresis.set_hysteresis_time_from(false, GROUND_CONTACT_TRIGGER_TIME_US);
@@ -93,6 +94,7 @@ void MulticopterLandDetector::_update_topics()
 	_vehicle_angular_velocity_sub.update(&_vehicle_angular_velocity);
 	_vehicle_control_mode_sub.update(&_vehicle_control_mode);
 	_vehicle_local_position_setpoint_sub.update(&_vehicle_local_position_setpoint);
+	_distance_sensor_sub.update(&_distance_sensor);
 }
 
 void MulticopterLandDetector::_update_params()
@@ -105,6 +107,7 @@ void MulticopterLandDetector::_update_params()
 	param_get(_paramHandle.hoverThrottle, &_params.hoverThrottle);
 	param_get(_paramHandle.minManThrottle, &_params.minManThrottle);
 	param_get(_paramHandle.landSpeed, &_params.landSpeed);
+	param_get(_paramHandle.clearance, &_params.clearance);
 }
 
 bool MulticopterLandDetector::_get_freefall_state()
@@ -130,6 +133,19 @@ bool MulticopterLandDetector::_get_ground_contact_state()
 	// When not armed, consider to have ground-contact
 	if (!_actuator_armed.armed) {
 		return true;
+	}
+
+	if (_params.clearance >= 0 &&
+	    hrt_elapsed_time(&_distance_sensor.timestamp) < 200_ms &&
+	    _distance_sensor.orientation == distance_sensor_s::ROTATION_DOWNWARD_FACING &&
+	    _distance_sensor.current_distance <= _distance_sensor.max_distance &&
+	    _distance_sensor.current_distance >= _distance_sensor.min_distance)
+	{
+		// rangefinder data is valid
+		if (_distance_sensor.current_distance <= _params.clearance) {
+			return true;
+		}
+		// rangefinder says we're not landed, but we still try another conditions
 	}
 
 	// land speed threshold
