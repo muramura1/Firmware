@@ -212,6 +212,17 @@ static bool magConsistencyCheck(orb_advert_t *mavlink_log_pub, vehicle_status_s 
 		pass = true;
 	}
 
+	int32_t estimator_type;
+	param_get(param_find("SYS_MC_EST_GROUP"), &estimator_type);
+
+	if (estimator_type == 1) { // lpe + q
+		float mag_weight;
+		param_get(param_find("ATT_W_MAG"), &mag_weight);
+		if (mag_weight < FLT_EPSILON) { // mag weight is 0, skip check
+			return true;
+		}
+	}
+
 	// Use the difference between sensors to detect a bad calibration, orientation or magnetic interference.
 	// If a single sensor is fitted, the value being checked will be zero so this check will always pass.
 	int32_t angle_difference_limit_deg;
