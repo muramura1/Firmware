@@ -326,10 +326,9 @@ void AttitudeEstimatorQ::task_main()
 
 		// Update vision and motion capture heading
 		_ext_hdg_good = false;
+		vehicle_odometry_s vision;
 
 		if (_vision_odom_sub.updated()) {
-			vehicle_odometry_s vision;
-
 			if (_vision_odom_sub.copy(&vision)) {
 				// validation check for vision attitude data
 				bool vision_att_valid = PX4_ISFINITE(vision.q[0])
@@ -346,19 +345,13 @@ void AttitudeEstimatorQ::task_main()
 					// Hence Rvis must be transposed having (Rwr)' * Vw
 					// Rrw * Vw = vn. This way we have consistency
 					_vision_hdg = Rvis.transpose() * v;
-
-					// vision external heading usage (ATT_EXT_HDG_M 1)
-					if (_ext_hdg_mode == 1) {
-						// Check for timeouts on data
-						_ext_hdg_good = vision.timestamp > 0 && (hrt_elapsed_time(&vision.timestamp) < 500000);
-					}
 				}
 			}
 		}
 
-		if (_mocap_odom_sub.updated()) {
-			vehicle_odometry_s mocap;
+		vehicle_odometry_s mocap;
 
+		if (_mocap_odom_sub.updated()) {
 			if (_mocap_odom_sub.copy(&mocap)) {
 				// validation check for mocap attitude data
 				bool mocap_att_valid = PX4_ISFINITE(mocap.q[0])
@@ -375,14 +368,17 @@ void AttitudeEstimatorQ::task_main()
 					// Hence Rmoc must be transposed having (Rwr)' * Vw
 					// Rrw * Vw = vn. This way we have consistency
 					_mocap_hdg = Rmoc.transpose() * v;
-
-					// Motion Capture external heading usage (ATT_EXT_HDG_M 2)
-					if (_ext_hdg_mode == 2) {
-						// Check for timeouts on data
-						_ext_hdg_good = mocap.timestamp > 0 && (hrt_elapsed_time(&mocap.timestamp) < 500000);
-					}
 				}
 			}
+		}
+
+		// vision external heading usage (ATT_EXT_HDG_M 1)
+		if (_ext_hdg_mode == 1) {
+			// Check for timeouts on data
+			_ext_hdg_good = vision.timestamp > 0 && (hrt_elapsed_time(&vision.timestamp) < 500000);
+		} else if (_ext_hdg_mode == 2) { // Motion Capture external heading usage (ATT_EXT_HDG_M 2)
+			// Check for timeouts on data
+			_ext_hdg_good = mocap.timestamp > 0 && (hrt_elapsed_time(&mocap.timestamp) < 500000);
 		}
 
 		if (_global_pos_sub.updated()) {
