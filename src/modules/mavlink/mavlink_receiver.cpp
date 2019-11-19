@@ -2485,7 +2485,7 @@ void MavlinkReceiver::handle_message_statustext(mavlink_message_t *msg)
 		log_message.timestamp = hrt_absolute_time();
 
 		snprintf((char *)log_message.text, sizeof(log_message.text),
- 			 "[mavlink: component %d] %." STRINGIFY(MAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN) "s", msg->compid, statustext.text);
+			 "[mavlink: component %d] %." STRINGIFY(MAVLINK_MSG_STATUSTEXT_FIELD_TEXT_LEN) "s", msg->compid, statustext.text);
 
 		if (_log_message_pub == nullptr) {
 			_log_message_pub = orb_advertise(ORB_ID(log_message), &log_message);

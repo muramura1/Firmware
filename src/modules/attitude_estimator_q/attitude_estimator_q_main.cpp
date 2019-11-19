@@ -378,6 +378,7 @@ void AttitudeEstimatorQ::task_main()
 		// Check for timeouts on data
 		if (_ext_hdg_mode == 1) {
 			_ext_hdg_good = vision.timestamp > 0 && (hrt_elapsed_time(&vision.timestamp) < 500000);
+
 		} else if (_ext_hdg_mode == 2) {
 			_ext_hdg_good = mocap.timestamp > 0 && (hrt_elapsed_time(&mocap.timestamp) < 500000);
 		}
