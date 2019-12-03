@@ -259,19 +259,20 @@ void LandingTargetEstimator::_initialize_topics()
 	_attitudeSub = orb_subscribe(ORB_ID(vehicle_attitude));
 	_sensorBiasSub = orb_subscribe(ORB_ID(sensor_bias));
 	_irlockReportSub = orb_subscribe(ORB_ID(irlock_report));
+	_uwbReportSub = orb_subscribe(ORB_ID(uwb_report));
 	_parameterSub = orb_subscribe(ORB_ID(parameter_update));
 }
 
 void LandingTargetEstimator::_update_topics()
 {
-	_vehicleLocalPosition_valid = _vehicleLocalPositionSub.update(&_vehicleLocalPosition);
-	_vehicleAttitude_valid = _attitudeSub.update(&_vehicleAttitude);
-	_vehicle_acceleration_valid = _vehicle_acceleration_sub.update(&_vehicle_acceleration);
-	_sensorBiasSub.update(&_sensorBias);
+	_vehicleLocalPosition_valid = _orb_update(ORB_ID(vehicle_local_position), _vehicleLocalPositionSub,
+				      &_vehicleLocalPosition);
+	_vehicleAttitude_valid = _orb_update(ORB_ID(vehicle_attitude), _attitudeSub, &_vehicleAttitude);
+	_sensorBias_valid = _orb_update(ORB_ID(sensor_bias), _sensorBiasSub, &_sensorBias);
 
 	//TODO: Uncomment this so it still works with both IRLock and uwb
 
-	if (_irlockReportSub.update(&_irlockReport)) {
+	if (_orb_update(ORB_ID(irlock_report), _irlockReportSub, &_irlockReport)) {
 		_new_irlockReport = true;
 
 		if (!_vehicleAttitude_valid || !_vehicleLocalPosition_valid || !_vehicleLocalPosition.dist_bottom_valid) {
@@ -311,7 +312,7 @@ void LandingTargetEstimator::_update_topics()
 		_sensor_report.rel_pos_z = _uncertainty_scale;
 	}
 
-	if (_uwbReportSub.update(&_uwbReport)) {
+	if (_orb_update(ORB_ID(uwb_report), _uwbReportSub, &_uwbReport)) {
 		if (!_vehicleAttitude_valid || !_vehicleLocalPosition_valid) {
 			// don't have the data needed for an update
 			//PX4_INFO("Attitude: %d, Local pos: %d", _vehicleAttitude_valid, _vehicleLocalPosition_valid);
@@ -338,21 +339,6 @@ void LandingTargetEstimator::_update_topics()
 	}
 }
 
-<<<<<<< HEAD
-
-bool LandingTargetEstimator::_orb_update(const struct orb_metadata *meta, int handle, void *buffer)
-{
-	bool newData = false;
-
-	// check if there is new data to grab
-	if (orb_check(handle, &newData) != OK) {
-		return false;
-	}
-
-	_new_irlockReport = _orb_update(ORB_ID(irlock_report), _irlockReportSub, &_irlockReport);
-}
-
-
 bool LandingTargetEstimator::_orb_update(const struct orb_metadata *meta, int handle, void *buffer)
 {
 	bool newData = false;
@@ -373,8 +359,6 @@ bool LandingTargetEstimator::_orb_update(const struct orb_metadata *meta, int ha
 	return true;
 }
 
-=======
->>>>>>> b813ded4b6... Some debugging
 void LandingTargetEstimator::_update_params()
 {
 	param_get(_paramHandle.acc_unc, &_params.acc_unc);

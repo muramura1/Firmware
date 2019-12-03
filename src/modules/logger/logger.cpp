@@ -664,12 +664,12 @@ void Logger::add_default_topics()
 	add_topic("uwb_report");
 	add_topic("landing_target_pose");
 
-	add_topic_multi("actuator_outputs", 100);
-	add_topic_multi("battery_status", 500);
-	add_topic_multi("distance_sensor", 100);
-	add_topic_multi("telemetry_status");
-	add_topic_multi("vehicle_gps_position");
-	add_topic_multi("wind_estimate", 200);
+	add_topic("actuator_outputs", 100);
+	add_topic("battery_status", 500);
+	add_topic("distance_sensor", 100);
+	add_topic("telemetry_status");
+	add_topic("vehicle_gps_position");
+	add_topic("wind_estimate", 200);
 
 #ifdef CONFIG_ARCH_BOARD_PX4_SITL
 	add_topic("actuator_controls_virtual_fw");

@@ -155,16 +155,14 @@ private:
 		float rel_pos_z;
 	} _sensor_report;
 
-	uORB::Subscription _vehicleLocalPositionSub{ORB_ID(vehicle_local_position)};
-	uORB::Subscription _attitudeSub{ORB_ID(vehicle_attitude)};
-	uORB::Subscription _vehicle_acceleration_sub{ORB_ID(vehicle_acceleration)};
-	uORB::Subscription _irlockReportSub{ORB_ID(irlock_report)};
-	uORB::Subscription _sensorBiasSub{ORB_ID(sensor_bias)};
-	uORB::Subscription _uwbReportSub{ORB_ID(uwb_report)};
+	int _vehicleLocalPositionSub;
+	int _attitudeSub;
+	int _irlockReportSub;
+	int _sensorBiasSub;
+	int _uwbReportSub;
 
 	vehicle_local_position_s	_vehicleLocalPosition{};
 	vehicle_attitude_s		_vehicleAttitude{};
-	vehicle_acceleration_s		_vehicle_acceleration{};
 	irlock_report_s			_irlockReport{};
 	uwb_report_s		_uwbReport{};
 	sensor_bias_s       _sensorBias{};
@@ -172,7 +170,7 @@ private:
 	// keep track of which topics we have received
 	bool _vehicleLocalPosition_valid{false};
 	bool _vehicleAttitude_valid{false};
-	bool _vehicle_acceleration_valid{false};
+	bool _sensorBias_valid{false};
 	bool _new_irlockReport{false};
 	bool _new_sensorReport{false};
 	bool _estimator_initialized{false};
@@ -183,14 +181,9 @@ private:
 	matrix::Vector<float, 2> _rel_pos;
 	KalmanFilter _kalman_filter_x;
 	KalmanFilter _kalman_filter_y;
-<<<<<<< HEAD
-	hrt_abstime _last_predict; // timestamp of last filter prediction
-	hrt_abstime _last_update; // timestamp of last filter update (used to check timeout)
-=======
 	hrt_abstime _last_predict{0}; // timestamp of last filter prediction
 	hrt_abstime _last_update{0}; // timestamp of last filter update (used to check timeout)
 	float _uncertainty_scale{1.0f};
->>>>>>> 07bc0be7ea... Added pozyx. Fixed hardfaults (increased pozyx stack allocation).
 
 	void _check_params(const bool force);
 
