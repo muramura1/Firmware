@@ -52,8 +52,9 @@ if(NOT IS_DIRECTORY "${git_dir_path}")
 endif()
 
 set(px4_git_ver_header ${CMAKE_CURRENT_BINARY_DIR}/build_git_version.h)
+# FIXME: Our tag format is not valid by PX4 standards, remove it for the time being
 add_custom_command(OUTPUT ${px4_git_ver_header}
-	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/px_update_git_header.py ${px4_git_ver_header} --validate
+	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/px_update_git_header.py ${px4_git_ver_header}
 	DEPENDS
 		${CMAKE_CURRENT_SOURCE_DIR}/px_update_git_header.py
 		${git_dir_path}/HEAD
