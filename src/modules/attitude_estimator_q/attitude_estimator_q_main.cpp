@@ -376,6 +376,7 @@ void AttitudeEstimatorQ::task_main()
 		if (_ext_hdg_mode == 1) {
 			// Check for timeouts on data
 			_ext_hdg_good = vision.timestamp > 0 && (hrt_elapsed_time(&vision.timestamp) < 500000);
+
 		} else if (_ext_hdg_mode == 2) { // Motion Capture external heading usage (ATT_EXT_HDG_M 2)
 			// Check for timeouts on data
 			_ext_hdg_good = mocap.timestamp > 0 && (hrt_elapsed_time(&mocap.timestamp) < 500000);

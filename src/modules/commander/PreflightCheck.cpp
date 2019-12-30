@@ -739,9 +739,11 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, vehicle_status_s &status, veh
 	param_get(param_find("SYS_MC_EST_GROUP"), &estimator_type);
 
 	bool check_mag = true;
+
 	if (estimator_type == 1) { // lpe + q
 		float mag_weight;
 		param_get(param_find("ATT_W_MAG"), &mag_weight);
+
 		if (mag_weight < FLT_EPSILON) { // mag weight is 0, skip check
 			check_mag = false;
 		}

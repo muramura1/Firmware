@@ -139,12 +139,12 @@ bool MulticopterLandDetector::_get_ground_contact_state()
 	    hrt_elapsed_time(&_distance_sensor.timestamp) < 200_ms &&
 	    _distance_sensor.orientation == distance_sensor_s::ROTATION_DOWNWARD_FACING &&
 	    _distance_sensor.current_distance <= _distance_sensor.max_distance &&
-	    _distance_sensor.current_distance >= _distance_sensor.min_distance)
-	{
+	    _distance_sensor.current_distance >= _distance_sensor.min_distance) {
 		// rangefinder data is valid
 		if (_distance_sensor.current_distance <= _params.clearance) {
 			return true;
 		}
+
 		// rangefinder says we're not landed, but we still try another conditions
 	}
 
