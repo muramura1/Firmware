@@ -308,11 +308,12 @@ Mission::on_active()
 				if (charging_station_position.id == (int)_mission_item.params[2]) {
 					sp->current.lat = charging_station_position.lat;
 					sp->current.lon = charging_station_position.lon;
-
-					if (charging_station_position.yaw_valid)
-						sp->current.yaw = charging_station_position.yaw;
-					
 					sp->current.valid = true;
+
+					if (charging_station_position.yaw_valid) {
+						sp->current.yaw = charging_station_position.yaw;
+						sp->current.yaw_valid = true;
+					}
 				}
 
 				// check are we in acceptance radius
@@ -333,9 +334,10 @@ Mission::on_active()
 			}
 			// precision landing, it's a charging station from the waypoint and the charging station yaw is valid
 			else if ((charging_station_position.id == (int)_mission_item.params[2]) &&
-					(charging_station_position.yaw_valid)) {
+					charging_station_position.yaw_valid) {
 				// replace landing target yaw with a charging station yaw
 				sp->current.yaw = charging_station_position.yaw;
+				sp->current.yaw_valid = true;
 
 				_navigator->set_position_setpoint_triplet_updated();
 			}
