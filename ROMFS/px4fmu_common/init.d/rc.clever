@@ -9,6 +9,7 @@ else
 
 	param set ATT_W_EXT_HDG 0.5
 	param set ATT_EXT_HDG_M 1
+	param set ATT_W_MAG 0
 
 	param set COM_ARM_MAG 0.5
 	param set COM_RC_LOSS_T 2.0
