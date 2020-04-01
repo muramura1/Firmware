@@ -241,8 +241,8 @@ then
 
 	# Internal SPI (auto detect ms5611 or ms5607)
 	ms5611 -T 0 -s start
-
-	mpu9250 -R 8 start
+# Set -R 8 to have a less correct (but more obvious) orientation
+	mpu9250 -R 2 start
 fi
 
 if ver hwcmp MINDPX_V2
