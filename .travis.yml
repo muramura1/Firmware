@@ -30,6 +30,7 @@ env:
  - BUILD_TARGET=px4fmu-v3_default
  - BUILD_TARGET=px4fmu-v4_default
  - BUILD_TARGET=px4fmu-v5_default
+ - BUILD_TARGET=coexpix-v1_default
 
 stage: Build
 
