@@ -231,6 +231,20 @@ then
 	fi
 fi
 
+if ver hwcmp COEXPIX_V1
+then
+	# External I2C bus
+	hmc5883 -C -T -X start
+	lis3mdl -X start
+
+	bmm150 -R 2 start
+
+	# Internal SPI (auto detect ms5611 or ms5607)
+	ms5611 -T 0 -s start
+
+	mpu9250 -R 8 start
+fi
+
 if ver hwcmp MINDPX_V2
 then
 	# External I2C bus

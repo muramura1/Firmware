@@ -265,8 +265,20 @@ public:
 	float		get_yaw_timeout() const { return _param_yaw_timeout.get(); }
 	float		get_yaw_threshold() const { return _param_yaw_err.get(); }
 
-	float		get_vtol_back_trans_deceleration() const { return _param_back_trans_dec_mss.get(); }
-	float		get_vtol_reverse_delay() const { return _param_reverse_delay.get(); }
+	float		get_vtol_back_trans_deceleration() const { 
+#if 0
+		return _param_back_trans_dec_mss.get(); 
+#else
+		return 0.0f;
+#endif
+	}
+	float		get_vtol_reverse_delay() const {
+#if 0
+		return _param_reverse_delay.get();
+#else
+		return 0.0f;
+#endif
+	}
 
 	bool		force_vtol();
 
@@ -348,11 +360,13 @@ private:
 		(ParamFloat<px4::params::MIS_LTRMIN_ALT>) _param_loiter_min_alt,
 		(ParamFloat<px4::params::MIS_TAKEOFF_ALT>) _param_takeoff_min_alt,
 		(ParamFloat<px4::params::MIS_YAW_TMT>) _param_yaw_timeout,
-		(ParamFloat<px4::params::MIS_YAW_ERR>) _param_yaw_err,
+		(ParamFloat<px4::params::MIS_YAW_ERR>) _param_yaw_err
 
 		// VTOL parameters TODO: get these out of navigator
+#if 0
 		(ParamFloat<px4::params::VT_B_DEC_MSS>) _param_back_trans_dec_mss,
 		(ParamFloat<px4::params::VT_B_REV_DEL>) _param_reverse_delay
+#endif
 	)
 
 	float _mission_cruising_speed_mc{-1.0f};
