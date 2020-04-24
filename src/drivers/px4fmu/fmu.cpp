@@ -1199,33 +1199,44 @@ PX4FMU::cycle()
 
 				/* do mixing */
 				float outputs[_max_actuators];
-				const unsigned mixed_num_outputs = _mixers->mix(outputs, _num_outputs);
+
+				// _mixers->mix returns index of the last output, but we need full amount of outputs - so, plus 1
+				const unsigned mixed_num_outputs = _mixers->mix(outputs, _num_outputs) + 1;
 
 				/* the PWM limit call takes care of out of band errors, NaN and constrains */
 				uint16_t pwm_limited[MAX_ACTUATORS];
 
-				pwm_limit_calc(_throttle_armed, arm_nothrottle(), mixed_num_outputs, _reverse_pwm_mask,
+				_pwm_limit.state = PWM_LIMIT_STATE_ON;
+
+				// pwm_limit_calc(_throttle_armed, arm_nothrottle(), mixed_num_outputs, _reverse_pwm_mask,
+				// 	       _disarmed_pwm, _min_pwm, _max_pwm, outputs, pwm_limited, &_pwm_limit);
+
+				// We don't need AUXes to be disarmed - so set "armed" flag always true here.
+				// State is also "Always on"
+				_pwm_limit.state = PWM_LIMIT_STATE_ON;
+				pwm_limit_calc(true, true, mixed_num_outputs, _reverse_pwm_mask,
 					       _disarmed_pwm, _min_pwm, _max_pwm, outputs, pwm_limited, &_pwm_limit);
 
+				// This behaivour we don't want also
 				/* overwrite outputs in case of force_failsafe with _failsafe_pwm PWM values */
-				if (_armed.force_failsafe) {
-					for (size_t i = 0; i < mixed_num_outputs; i++) {
-						pwm_limited[i] = _failsafe_pwm[i];
-					}
-				}
+				// if (_armed.force_failsafe) {
+				// 	for (size_t i = 0; i < mixed_num_outputs; i++) {
+				// 		pwm_limited[i] = _failsafe_pwm[i];
+				// 	}
+				// }
 
-				/* overwrite outputs in case of lockdown or parachute triggering with disarmed PWM values */
-				if (_armed.lockdown || _armed.manual_lockdown) {
-					for (size_t i = 0; i < mixed_num_outputs; i++) {
-						pwm_limited[i] = _disarmed_pwm[i];
-					}
-				}
+				// /* overwrite outputs in case of lockdown or parachute triggering with disarmed PWM values */
+				// if (_armed.lockdown || _armed.manual_lockdown) {
+				// 	for (size_t i = 0; i < mixed_num_outputs; i++) {
+				// 		pwm_limited[i] = _disarmed_pwm[i];
+				// 	}
+				// }
 
 				/* apply _motor_ordering */
-				reorder_outputs(pwm_limited);
+				// reorder_outputs(pwm_limited);
 
 				/* output to the servos */
-				if (_pwm_initialized && !_test_mode) {
+				if (!_test_mode) {
 					for (size_t i = 0; i < mixed_num_outputs; i++) {
 						up_pwm_servo_set(i, pwm_limited[i]);
 					}
