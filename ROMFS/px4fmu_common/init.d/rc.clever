@@ -1,4 +1,4 @@
-set CLEVER_DEFS 3
+set CLEVER_DEFS 4
 
 if param compare SYS_CLEVER_DEFS $CLEVER_DEFS
 then
@@ -41,6 +41,8 @@ else
 	param set EKF2_EVA_NOISE 0.1
 	param set EKF2_EVP_NOISE 0.1
 	param set EKF2_EV_DELAY 0
+
+	param set CAL_MAG_SIDES 34
 
 	param set SYS_CLEVER_DEFS $CLEVER_DEFS
 fi
