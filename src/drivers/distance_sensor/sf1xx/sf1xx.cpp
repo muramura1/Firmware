@@ -459,8 +459,6 @@ SF1XX::measure()
 		return ret;
 	}
 
-	ret = OK;
-
 	return ret;
 }
 
